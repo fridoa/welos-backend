@@ -11,6 +11,7 @@ export interface User {
   isActive: boolean;
   otpCode: string;
   createdAt?: string;
+  comparePassword(password: string): Promise<boolean>;
 }
 
 const UserSchema = new Schema<User>(
@@ -65,6 +66,16 @@ UserSchema.pre("save", async function (next) {
   }
   next();
 });
+
+UserSchema.methods.comparePassword = async function (passwordInput: string): Promise<boolean> {
+  return await bcrypt.compare(passwordInput, this.password);
+};
+
+UserSchema.methods.toJSON = function () {
+  const user = this.toObject();
+  delete user.password;
+  return user;
+};
 
 const UserModel = mongoose.model<User>("User", UserSchema);
 

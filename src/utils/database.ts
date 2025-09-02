@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import { DATABASE_URL } from "./env";
+import { env } from "./env";
 
 const connect = async () => {
   try {
-    await mongoose.connect(DATABASE_URL, {
+    await mongoose.connect(env.DATABASE_URL, {
       dbName: "db-welos",
     });
     return Promise.resolve("Database connected");

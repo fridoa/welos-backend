@@ -10,4 +10,10 @@ export const registerSchema = Yup.object({
     .oneOf([Yup.ref("password")], "Passwords must match"),
 });
 
+export const loginSchema = Yup.object({
+  identifier: Yup.string().required("Username or email is required"),
+  password: Yup.string().required("Password is required"),
+});
+
 export type TRegister = Yup.InferType<typeof registerSchema>;
+export type TLogin = Yup.InferType<typeof loginSchema>;
