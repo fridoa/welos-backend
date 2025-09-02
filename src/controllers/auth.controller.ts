@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { TLogin, TRegister } from "../validators/auth.validator";
 import UserModel from "../models/user.model";
 import { generateToken } from "../utils/jwt";
+import { IAuthRequest } from "../types/auth.type";
 
 export default {
   async register(req: Request, res: Response) {
@@ -86,5 +87,22 @@ export default {
         data: null,
       });
     }
+  },
+
+  async me(req: IAuthRequest, res: Response) {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "User identification from token failed" });
+    }
+
+    const userProfile = await UserModel.findById(userId).select("-password");
+    if (!userProfile) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "Success get user profile!!",
+      data: userProfile,
+    });
   },
 };
