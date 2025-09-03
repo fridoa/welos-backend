@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
+import { verifyPassword } from "../utils/password";
 
 export interface User {
   fullName: string;
@@ -11,7 +12,6 @@ export interface User {
   isActive: boolean;
   otpCode: string;
   createdAt?: string;
-  comparePassword(password: string): Promise<boolean>;
 }
 
 const UserSchema = new Schema<User>(
@@ -67,8 +67,8 @@ UserSchema.pre("save", async function (next) {
   next();
 });
 
-UserSchema.methods.comparePassword = async function (passwordInput: string): Promise<boolean> {
-  return await bcrypt.compare(passwordInput, this.password);
+UserSchema.methods.comparePassword = function (passwordInput: string): Promise<boolean> {
+  return verifyPassword(passwordInput, this.password);
 };
 
 UserSchema.methods.toJSON = function () {

@@ -3,6 +3,7 @@ import { TLogin, TRegister } from "../validators/auth.validator";
 import UserModel from "../models/user.model";
 import { generateToken } from "../utils/jwt";
 import { IAuthRequest } from "../types/auth.type";
+import { verifyPassword } from "../utils/password";
 
 export default {
   async register(req: Request, res: Response) {
@@ -63,7 +64,7 @@ export default {
         });
       }
 
-      const isPasswordCorrect = await user.comparePassword(password);
+      const isPasswordCorrect = await verifyPassword(password, user.password);
       if (!isPasswordCorrect) {
         return res.status(401).json({
           message: "Invalid Credentials",
