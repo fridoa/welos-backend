@@ -1,20 +1,9 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 import { verifyPassword } from "../utils/password";
+import { IUser } from "../types/user.type";
 
-export interface User {
-  fullName: string;
-  username: string;
-  email: string;
-  password: string;
-  role: string;
-  profilePicture: string;
-  isActive: boolean;
-  otpCode: string;
-  createdAt?: string;
-}
-
-const UserSchema = new Schema<User>(
+const UserSchema = new Schema<IUser>(
   {
     fullName: {
       type: String,
@@ -48,6 +37,9 @@ const UserSchema = new Schema<User>(
     otpCode: {
       type: String,
     },
+    otpCodeExpires: {
+      type: Date,
+    }
   },
   {
     timestamps: true,
@@ -77,6 +69,6 @@ UserSchema.methods.toJSON = function () {
   return user;
 };
 
-const UserModel = mongoose.model<User>("User", UserSchema);
+const UserModel = mongoose.model<IUser>("User", UserSchema);
 
 export default UserModel;

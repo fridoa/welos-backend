@@ -1,36 +1,16 @@
 import { Request, Response } from "express";
-import { TLogin, TRegister } from "../validators/auth.validator";
+import { TRegister } from "../validators/auth.validator";
 import UserModel from "../models/user.model";
-import { generateToken } from "../utils/jwt";
 import { IAuthRequest } from "../types/auth.type";
-import { verifyPassword } from "../utils/password";
+import authService from "../services/auth.service";
 
 export default {
   async register(req: Request, res: Response) {
-    const { fullName, username, email, password } = req.body as TRegister;
-
     try {
-      const existingUsername = await UserModel.findOne({ username });
-      if (existingUsername) {
-        return res.status(400).json({
-          message: "Username already exists",
-          data: null,
-        });
-      }
-
-      const existingEmail = await UserModel.findOne({ email });
-      if (existingEmail) {
-        return res.status(400).json({
-          message: "Email already exists",
-          data: null,
-        });
-      }
-
-      const user = new UserModel({ fullName, username, email, password });
-      await user.save();
+      const user = await authService.registerUser(req.body as TRegister);
 
       res.status(200).json({
-        message: "User registered successfully",
+        message: "Registrasi Berhasil",
         data: user,
       });
     } catch (error) {
@@ -43,42 +23,11 @@ export default {
   },
 
   async login(req: Request, res: Response) {
-    const { identifier, password } = req.body as TLogin;
-
     try {
-      const user = await UserModel.findOne({
-        $or: [
-          {
-            username: identifier,
-          },
-          {
-            email: identifier,
-          },
-        ],
-      });
-
-      if (!user) {
-        return res.status(401).json({
-          message: "Invalid Credentials",
-          data: null,
-        });
-      }
-
-      const isPasswordCorrect = await verifyPassword(password, user.password);
-      if (!isPasswordCorrect) {
-        return res.status(401).json({
-          message: "Invalid Credentials",
-          data: null,
-        });
-      }
-
-      const token = generateToken({
-        id: user._id,
-        role: user.role,
-      });
+      const token = await authService.loginUser(req.body);
 
       res.status(200).json({
-        message: "User login successfully",
+        message: "Login Berhasil",
         data: token,
       });
     } catch (error) {
@@ -93,17 +42,35 @@ export default {
   async me(req: IAuthRequest, res: Response) {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ message: "User identification from token failed" });
+      return res.status(401).json({ message: "Gagal mengidentifikasi pengguna dari token" });
     }
 
     const userProfile = await UserModel.findById(userId).select("-password");
     if (!userProfile) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Pengguna tidak ditemukan" });
     }
 
     res.status(200).json({
-      message: "Success get user profile!!",
+      message: "Data profil berhasil diambil",
       data: userProfile,
     });
+  },
+
+  async verifyByOtp(req: Request, res: Response) {
+    try {
+      const { otpCode } = req.body;
+
+      await authService.verifyUserOtp(otpCode);
+
+      res.status(200).json({
+        message: "Akun Anda berhasil diaktifkan. Silakan login.",
+      });
+    } catch (error) {
+      const err = error as unknown as Error;
+      res.status(400).json({
+        message: err.message,
+        data: null,
+      });
+    }
   },
 };

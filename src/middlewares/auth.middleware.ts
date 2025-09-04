@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { loginSchema, registerSchema } from "../validators/auth.validator";
+import { loginSchema, registerSchema, verifyOtpSchema } from "../validators/auth.validator";
 import { IAuthRequest } from "../types/auth.type";
 import { getUserData } from "../utils/jwt";
 
@@ -58,8 +58,23 @@ const validateMe = async (req: IAuthRequest, res: Response, next: NextFunction) 
   next();
 };
 
+const validatVerifySchema = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await verifyOtpSchema.validate(req.body, { abortEarly: false });
+
+    next();
+  } catch (error) {
+    const err = error as Error;
+    res.status(400).json({
+      message: err.message,
+      data: null,
+    });
+  }
+};
+
 export default {
   validateRegister,
   validateLogin,
   validateMe,
+  validatVerifySchema,
 };
