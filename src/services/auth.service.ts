@@ -12,7 +12,12 @@ async function registerUser(user: TRegister) {
 
   const existingUser = await UserModel.findOne({ $or: [{ email }, { username }] });
   if (existingUser) {
-    throw createHttpError(409, "Email atau username sudah terdaftar.");
+    if (existingUser.email === email) {
+      throw createHttpError(409, "Email ini sudah terdaftar.");
+    }
+    if (existingUser.username === username) {
+      throw createHttpError(409, "Username ini sudah digunakan.");
+    }
   }
 
   const newUser = new UserModel({ fullName, username, email, password });
